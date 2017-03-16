@@ -1,0 +1,318 @@
+# File containing rules for processing LaTeX tokens into HTML
+#
+Q <i>Q</i>
+W <i>W</i>
+E <i>E</i>
+R <i>R</i>
+T <i>T</i>
+Y <i>Y</i>
+U <i>U</i>
+I <i>I</i>
+O <i>O</i>
+P <i>P</i>
+A <i>A</i>
+S <i>S</i>
+D <i>D</i>
+F <i>F</i>
+G <i>G</i>
+H <i>H</i>
+J <i>J</i>
+K <i>K</i>
+L <i>L</i>
+Z <i>Z</i>
+X <i>X</i>
+C <i>C</i>
+V <i>V</i>
+B <i>B</i>
+N <i>N</i>
+M <i>M</i>
+q <i>q</i>
+w <i>w</i>
+e <i>e</i>
+r <i>r</i>
+t <i>t</i>
+y <i>y</i>
+u <i>u</i>
+i <i>i</i>
+o <i>o</i>
+p <i>p</i>
+a <i>a</i>
+s <i>s</i>
+d <i>d</i>
+f <i>f</i>
+g <i>g</i>
+h <i>h</i>
+j <i>j</i>
+k <i>k</i>
+l <i>l</i>
+z <i>z</i>
+x <i>x</i>
+c <i>c</i>
+v <i>v</i>
+b <i>b</i>
+n <i>n</i>
+m <i>m</i>
+#
+# Greek letters
+#
+\Gamma Γ
+\Delta Δ
+\Theta Θ
+\Lambda Λ
+\Xi Ξ
+\Pi Π
+\Sigma Σ
+\Upsilon Υ
+\Phi Φ
+\Psi Ψ
+\Omega Ω
+\alpha α
+\beta β
+\gamma γ
+\delta δ
+\epsilon ϵ
+\varepsilon ε
+\zeta ζ
+\eta η
+\theta θ
+\vartheta ϑ
+\iota ι
+\kappa κ
+\varkappa ϰ
+\lambda λ
+\mu μ
+\nu ν
+\xi ξ
+\pi π
+\varpi ϖ
+\rho ρ
+\varrho ϱ
+\sigma σ
+\varsigma ς
+\tau τ
+\upsilon υ
+\phi ϕ
+\varphi φ
+\chi χ
+\psi ψ
+\omega ω
+#
+# Some other mathematical symbols
+# \u205F (as &#x205F;) necessary to wrap these, which is signified as "bin"
+# we also need +, -, and : to be binary operators.
+# well, - (and \pm and \mp) are complicated. But I'll address that later
+#
++ + bin
+- - bin
+: : bin
+= = bin
+* * bin
+< &lt; bin
+> &gt; bin
+\le ≤ bin
+\leq ≤ bin
+\ge ≥ bin
+\geq ≥ bin
+\ll ≪ bin
+\gg ≫ bin
+\subset ⊂ bin
+\supset ⊃ bin
+\subseteq ⊆ bin
+\supseteq ⊇ bin
+\nsubseteq ⊈ bin
+\nsupseteq ⊉ bin
+\subsetneq ⊊ bin
+\subsetneq ⊋ bin
+\sqsubset ⊏ bin
+\sqsupset ⊐ bin
+\sqsubseteq ⊑ bin
+\sqsupseteq ⊒ bin
+\preceq ≼ bin
+\succeq ≽ bin
+\doteq ≐ bin
+\equiv ≡ bin
+\approx ≈ bin
+\cong ≅ bin
+\simeq ≃ bin
+\sim ~ bin
+\propto ∝ bin
+\neq ≠ bin
+\ne ≠ bin
+\parellel ∥ bin
+\nparallel ∦ bin
+\asymp ≍ bin
+\bowtie ⋈ bin
+\vdash ⊢ bin
+\dashv ⊣ bin
+\in ∈ bin
+\ni ∋ bin
+\smile ⌣ bin
+\frown ⌢ bin
+\models ⊨ bin
+\notin ∉ bin
+\perp ⊥ bin
+\mid | bin
+\prec ≺ bin
+\succ ≻ bin
+\sphericalangle ∢ bin
+\measuredangle ∡ bin
+\pm ± bin
+\mp ∓ bin
+\times × bin
+\ast * bin
+\star ⋆ bin
+\dagger †
+\ddagger ‡
+\cap ∪ bin
+\cup ∩ bin
+\uplus ⊎ bin
+\sqcap ⊓ bin
+\sqcup ⊔ bin
+\vee ∨ bin
+\lor ∨ bin
+\wedge ∧ bin
+\land ∧ bin
+\cdot ⋅ bin
+# ok, for now just the ones I expect people to use
+\bullet ●
+\oplus ⊕ bin
+\ominus ⊖ bin
+\otimes ⊗ bin
+\oslash ⊘ bin
+\odot ⊙ bin
+\circ ∘
+\setminus ∖
+\amalg ∐ bin
+\exists ∃
+\nexists ∄
+\forall ∀
+\to → bin
+\rightarrow → bin
+\gets ← bin
+\leftarrow ← bin
+\mapsto ↦ bin
+\mapsfrom ↤	 bin
+\implies ⇒ bin
+\Rightarrow ⇒ bin
+\iff ⇔ bin
+\rightrightarrows ⇉ bin
+\leftleftarrows ⇇ bin
+\rightleftarrows ⇄ bin
+\leftrightarrows ⇆ bin
+\leftrightarrow ↔ bin
+\rightharpoon ⇀ bin
+\leftharpoon ↼ bin
+\top ⊤
+\bot ⊥
+\emptyset ∅
+\varnothing ∅
+\{ {
+\} }
+\uparrow ↑
+\downarrow ↓
+\hookleftarrow ↩ bin
+\hookrightarrow ↪ bin
+\twoheadleftarrow ↞ bin
+\twoheadrightarrow ↠ bin
+\inj ↪ bin
+\surj ↠ bin
+\| ∥
+\langle ⟨
+\rangle ⟩
+\lfloor ⌊
+\rfloor ⌋
+\lceil ⌈
+\rceil ⌉
+\partial ∂
+\hbar ℏ
+\ell ℓ
+\wp ℘
+\nabla ∇
+\Box □
+\infty ∞
+\aleph א
+# and then, math operators, including additional ones I expect to use
+# denoted with "op", since they will have to have different spacing
+\sin sin op
+\arcsin arcsin op
+\sinh sinh op
+\arcsinh arcsinh op
+\cos cos op
+\arccos arccos op
+\cosh cosh op
+\arccosh arccosh op
+\tan tan op
+\arctan arctan op
+\tanh tanh op
+\arctanh arctanh op
+\sec sec op
+\arcsec arcsec op
+\sech sech op
+\arcsech arcsech op
+\csc csc op
+\arccsc arccsc op
+\csch csch op
+\arccsch arccsch op
+\cot cot op
+\arccot arccot op
+\coth coth op
+\arccoth arccoth op
+\Cliff Cliff op
+\coker coker op
+\End End op
+\Ext Ext op
+\Frac Frac op
+\Gal Gal op
+\Hom Hom op
+\Im Im op
+\ker ker op
+\Mat Mat op
+\sign sign op
+\Re Re op
+\Sym Sym op
+\Tor Tor op
+\Proj Proj op
+\QCoh QCoh op
+\res res op
+\Spec Spec op
+\codim codim op
+\crit crit op
+\curl curl op
+\div div op
+\supp supp op
+\det det op
+\arg arg op
+\deg deg op
+\dim dim op
+\exp exp op
+\gcd gcd op
+\lcm lcm op
+\hom hom op
+\inf inf op
+\lim lim op
+\colim colim op
+\holim holim op
+\hocolim hocolim op
+\lg lg op
+\ln ln op
+\log log op
+\liminf liminf op
+\limsup limsup op
+\max max op
+\min min op
+\Pr Pr op
+\sup sup op
+\rank rank op
+# rules that wrap the group following them in specific tags
+# notation is 'tag' of the content in slot 2
+# maybe mathbb will use special bold math characters.
+# _ sub tag
+# ^ sup tag
+# \mathit i tag
+# \mathbf b tag
+# \boldsymbol b tag
+# \mathtt code tag
+# \emph em tag
+# others (mathscr, mathcal) will need to change the substitution table.
+# still not sure how to do that -- will I want another file?
+# should probably modify the rules list
