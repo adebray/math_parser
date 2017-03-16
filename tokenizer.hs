@@ -11,13 +11,17 @@ type RuleMap = Map.Map String String
 type ParseResult = Either String ParseTree
 type ForestResult = Either String [ParseTree]
 
--- first: tokenizing. Removing spaces and converting TeX commands to single tokens.
+{-
+   The first step is tokenization, which removes extra whitespace, converts TeX commands to single tokens,
+   and builds the parse tree. The main function is tokenize_math, which calls the rest of these as utilities.
+ -}
 
--- letters contains everything that can follow a backslash in a command name
--- single_char_tokens contain all permissible ASCII single-character tokens.
+-- letters contains everything that can follow a backslash in a command name.
 letters            = ['A'..'Z'] ++ ['a'..'z']
 non_letter_tokens  = "0123456789!^*()-_+=[]|':;<>,./?"
+-- end_command contains all tokens that can end a LaTeX command.
 end_command        = " $\\" ++ non_letter_tokens
+-- single_char_tokens contain all permissible ASCII single-character tokens.
 single_char_tokens = letters ++ non_letter_tokens
 
 wrapped delims content = delims *> content <* delims
@@ -29,10 +33,11 @@ leaf_token str = Node str []
 add_root :: [ParseTree] -> ParseTree
 add_root = Node []
 
+-- parses a TeX command such as \eggs or \Wine.
 tex_command :: GenParser Char st String
 tex_command = (:) <$> (char '\\') <*> (many $ noneOf end_command)
 
-{- This function is probably the most confusing
+{- This function is probably the most confusing.
     First, it throws away any spaces at the start or end,
     then it parses either a single token or a TeX command,
     and finally it makes that into a length-1 parse tree.
@@ -40,6 +45,7 @@ tex_command = (:) <$> (char '\\') <*> (many $ noneOf end_command)
 math_token :: GenParser Char st ParseTree
 math_token =  wrapped spaces $ (fmap leaf_token) $ ((:[]) <$> oneOf single_char_tokens) <|> tex_command
 
+-- parses a single math token (before the $), then makes it into a length-1 parse tree.
 math_group :: GenParser Char st ParseTree
 math_group = between (char '{') (char '}') $ lifted_add_root (many token_or_group)
     where lifted_add_root = fmap add_root :: GenParser Char st [ParseTree] -> GenParser Char st ParseTree
@@ -48,12 +54,11 @@ math_group = between (char '{') (char '}') $ lifted_add_root (many token_or_grou
 token_or_group :: GenParser Char st ParseTree
 token_or_group = math_group <|> math_token
 
--- accept string in $$, look for tokens
+-- accepts a string wrapped in $...$, and returns the tokenized parse tree.
 math_parser :: GenParser Char st ParseTree
 math_parser = wrapped (char '$') $ add_root <$> many1 token_or_group
  
--- returns a list of tokens
--- I wish I didn't have to case on this
+-- tokenizes math, producing a parse tree on success or an error message on failure.
 tokenize_math :: String -> Either String ParseTree
 tokenize_math input = case parse math_parser "parse error :(" input of
     Left failure  -> Left $ show failure
@@ -80,31 +85,35 @@ group_to_HTML rules curr_node next_node
           next_children_parsed = concatmap (group_to_HTML rules) (subforest next_node)
 -}
 
--- issues: it's much easier to construct the parse tree so that _ and the group after it are
--- sibling nodes. But it's much harder to convert to HTML when that happens.
-
--- list of commands that take an argument, so I need to transform
+-- list of commands that take an argument
 arg_comms = ["^", "_", "\\mathbb", "\\mathbf", "\\mathcal", "\\mathscr", "\\mathrm", "\\mathtt",
              "\\mathit", "\\mathnormal", "\\mathfrak", "\\mathsf", "\\pmod", "\\text", "\\boldsymbol",
              "\\overline", "\\bar", "\\tilde", "\\hat"]
 error_msg = "Parse Error: no argument to command "
 
--- possible solution: make another pass, where all operators in a list (_, ^, \mathbf, ...) are grafted
--- onto the next item in the list. either there's a group (in which case _ is just made into the rootLabel)
--- or there isn't (in which case a new tree is made, with one leaf
--- should be easy to do when separate.
+{-
+    For tokens in arg_comms, the parse tree isn't structured like we want: when parsing $f^1$, the tree is
 
--- I wonder if this pass can be made cleaner using Data.Traversable
+        *       when we want it to be       *
+       /|\                                 / \
+      f ^ 1                               f   ^
+                                               \
+                                                1
+    For the purposes of generating output, it's easier and conceptually cleaner to have the second option. Thus,
+    we'll make another pass through the parse tree, called the "graft pass," where we graft a token's argument
+    onto it, making the first tree into the second one.
 
--- given a tree, do what the above describes to its subForest. This doesn't change the root value, which is
--- useful for recursing.
--- Left indicates a parse error; Right indicates a successfully transformed tree
--- this looks very similar to graft_with_group, but they serve different roles. maybe I should combine them
+    In graft_pass, Left indicates a parse error; Right indicates a successfully transformed tree. Potential
+    parse errors include things like {b_}.
+
+    TODO: can this pass be made cleaner with Data.Traversable?
+    TODO: graft_pass and graft_with_group look very similar, but serve different roles. Can they be combined?
+ -}
 graft_pass :: ParseTree -> ParseResult
 graft_pass tree = Node (rootLabel tree) <$> traverse_forest (subForest tree)
 
--- handle all grafts in an array of trees. Cannot just call graft_pass on each one, because that calls
--- this function!
+-- traverse_forest handles all grafts in a list of trees. This is the utility function that graft_pass relies on,
+-- and so can't just call graft_pass on each argument!
 traverse_forest :: [ParseTree] -> ForestResult
 traverse_forest [] = Right []
 traverse_forest (focus:rest)
@@ -112,16 +121,17 @@ traverse_forest (focus:rest)
     | rest == []                       = Right (focus:[])
     | otherwise                        = (:) <$> graft_pass focus <*> traverse_forest rest
 
--- graft \mathbb {CP}
+-- graft, for example, \mathbb {CP}: an argument with a group.
 graft_with_group :: ParseTree -> ParseTree -> ParseResult
 graft_with_group focus next = Node (rootLabel focus) <$> traverse_forest (subForest next)
 
--- graft \mathbb C
+-- graft, for example, \mathbb C: an argument that's not a group.
 graft_two_leaves :: ParseTree -> ParseTree -> ParseTree
 graft_two_leaves focus next = Node (rootLabel focus) $ (Node (rootLabel next) []):[]
 
 -- makes a single graft. But has to address the rest of the array, too
 make_graft :: ParseTree -> [ParseTree] -> ForestResult
+-- if you want an argument at the end of group, that's an error, e.g. {b_} or {\mathbb}
 make_graft focus [] = Left $ error_msg ++ rootLabel focus ++ "."
 make_graft focus (next:after) = case rootLabel next of
     -- if the label is empty, it's a group, so we just merge the two trees
@@ -131,24 +141,35 @@ make_graft focus (next:after) = case rootLabel next of
     where grafted_after = traverse_forest after
           apply fn = fn focus next
 
--- now, the next step is to parse the rules file, producing a Map...
--- and then apply the rules to everything in the tree.
+-- for pretty-printing trees for testing, at least for now
+pretty_print_parse_tree :: String -> Either String String
+pretty_print_parse_tree input = drawTree <$> join (graft_pass <$> tokenize_math input)
+
+{-
+   The next step is to parse the rules file, producing a map describing what to do with a given token (e.g.
+   letters should be italicized, _ wraps its argument in <sub>, ...). Then, the rules can be applied to
+   everything in the tree.
+
+   Most of the idea is in place, but I still have to address math alphabets that replace certain characters
+   with others. I have to think through the tree traversal again.
+ -}
 
 -- aba "Side" "By" = "SideBySide"
 aba :: String -> String -> String
 aba s1 s2 = concat [s1, s2, s1]
 
--- remove all lines starting with # and empty lines
+-- remove all lines in the rules file starting with # and empty lines
 ignore_comments :: [String] -> [String]
-ignore_comments = filter (\s -> not (null s) && s !! 0 /= '#')
+ignore_comments = filter (\s -> not (null s) && head s /= '#')
 
--- produce an assignment of input |-> what to do for that input
+-- for a single command, determines what the rules file says to do with it
 single_rule :: [String] -> (String, String)
 single_rule (input:output:"bin":[]) = (input, aba "&#x205F;" output)
 single_rule (input:output:"op":[])  = (input, aba " " output) -- hopefully this is the right spacing
 single_rule (input:output:[])       = (input, output)
 single_rule _                       = ("", "")
 
+-- produces the map of input token |-> rule to apply to it
 generate_rules :: [String] -> RuleMap
 generate_rules = Map.fromList . fmap (single_rule . words) . ignore_comments
 
@@ -159,12 +180,8 @@ apply_rule rules tok = case Map.lookup tok rules of
     Just value -> value
     Nothing    -> tok
 
--- for pretty-printing trees for testing, at least for now
--- eh make more explicit!
-pretty_print_parse_tree :: String -> Either String String
-pretty_print_parse_tree input = drawTree <$> join (graft_pass <$> tokenize_math input)
-
--- applies an argument to a group, flattening it
+-- applies an argument to a group, flattening it into a single string
+-- TODO: this lacks a default case
 arg_to_group :: RuleMap -> ParseTree -> String
 arg_to_group rules tree = case rootLabel tree of
    "_"        -> add_tag "sub" result
@@ -177,18 +194,15 @@ arg_to_group rules tree = case rootLabel tree of
    '\\check'  -> result ++ "\x030C"
    where result = codegen_forest rules tree
 
--- TODO codegen_forest, which actually traverses.
--- it does feel inefficient making yet another pass, but I can't see a better way
--- in particular, things like mathscr will use a modified version of the rules
+-- TODO codegen_forest, which actually traverses the tree and implements the rules.
+-- It does feel inefficient making yet another pass, but I can't see a better way.
+-- In particular, things like mathscr will use a modified version of the rules
 
--- traverses a 
 codegen_forest :: RuleMap -> ParseTree -> String
 
 -- finally, I'll try to simplify this code into using Foldable or Traversable
 
-
-
--- one final pass through the tree, to apply
+-- one final pass through the tree, to apply the rules described above
 -- will also have to account for _, ^, ...
 code_generation :: RuleMap -> ParseTree -> String
 code_generation rules tree = foldr (++) "" $ fmap (apply_rule rules) tree
@@ -205,11 +219,6 @@ main = do input <- getLine
           rule_text <- readLines "rules.txt"
           let rules = generate_rules rule_text
           putStrLn (tex_to_HTML rules input)
-
-
-
-
-
 
 
 -- main = do...
