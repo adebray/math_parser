@@ -6,8 +6,8 @@ Unicode's Mathematical Alphanumeric Symbols block and various other math operato
 it should be possible to transform simple LaTeX code into HTML. Of course, another goal of this project is to
 increase my fluency in parsing with Haskell's Parsec library.
 
-Example: the expression `$f_1: A\to B$` could be parsed into `<i>f</i><sub>1</sub>: <i>A</i> ->
-<i>B</i>`, which looks like <i>f</i><sub>1</sub>: <i>A</i> -> <i>B</i>.
+Example: the expression `$f_1: A\to B$` could be parsed into `<i>f</i><sub>1</sub>: <i>A</i> ⟶
+<i>B</i>`, which looks like <i>f</i><sub>1</sub>: <i>A</i> ⟶ <i>B</i>.
 
 Current scope:
 	- inline math only (for now), to reduce the number of variables in consideration.
